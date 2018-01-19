@@ -1,0 +1,33 @@
+version: '2'
+services: 
+ snowplow-collector:
+    image: snowplow-docker-registry.bintray.io/snowplow/scala-stream-collector:0.11.0
+    container_name: snowplow-collector
+    restart: unless-stopped
+    volumes: 
+    - /snowplow/config:/snowplow/config
+    ports:
+    - 8081:8081
+    networks:
+       snowbr:
+        ipv4_address: 172.19.0.16
+    command: [ "--config", "/snowplow/config/nsq-collector.conf"]
+ snowplow-enrich:
+    image: snowplow-docker-registry.bintray.io/snowplow/stream-enrich:0.12.0
+    container_name: snowplow-enricher
+    restart: unless-stopped
+    volumes:
+    - /snowplow/config:/snowplow/config
+    networks:
+       snowbr:
+        ipv4_address: 172.19.0.17
+    command: [ "--config", "/snowplow/config/nsq-enrich.conf",
+      "--resolver", "file:/snowplow/config/resolver.conf",
+      "--force-ip-lookups-download" ]
+networks:
+    snowbr:
+        ipam:
+            driver: default
+            config:
+                - subnet: 172.19.0.0/16
+

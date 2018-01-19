@@ -1,0 +1,51 @@
+input {
+   nsq {
+        nsqlookupd => ["172.19.0.10:4161","172.19.0.11:4161"]
+        topic => "good_enriched"
+        channel => "good-enrich-channel-logstash"
+        max_in_flight  => 200
+        codec => plain
+	type => "good"
+   }
+   nsq {
+        nsqlookupd => ["172.19.0.10:4161","172.19.0.11:4161"]
+        topic => "bad_enriched"
+        channel => "bad-enrich-channel-logstash"
+        max_in_flight  => 200
+        codec => plain
+        type => "bad"
+   }
+}
+
+filter { 
+  mutate {
+      gsub => [
+      "message", "\t", "|" ]}
+  
+  grok {
+   match => { "message" =>  "%{GREEDYDATA:appid}?\|%{WORD:platform}?\|%{TIMESTAMP_ISO8601:etl_tstamp}?\|%{TIMESTAMP_ISO8601:collector_tstamp}?\|%{TIMESTAMP_ISO8601:dvce_created_tstamp}?\|%{WORD:event}?\|%{UUID:event_id}?\|(%{NUMBER:txn_id})?\|%{WORD:name_tracker}?\|%{JAVACLASS:v_tracker}?\|%{JAVAFILE:v_collector}?\|%{JAVAFILE:v_etl}?\|%{GREEDYDATA:user_id}?\|%{IPV4:user_ipaddress}?\|%{NUMBER:user_fingerprint}?\|%{UUID:domain_userid}?\|%{NUMBER:domain_sessionidx}?\|%{UUID:network_userid}?\|%{WORD:geo_country}?\|%{WORD:geo_region}?\|%{WORD:geo_city}?\|%{NUMBER:geo_zipcode}?\|%{NUMBER:geo_latitude}?\|%{NUMBER:geo_longitude}?\|%{WORD:geo_region_name}?\|%{IP:ip_isp}?\|%{IP:ip_organization}?\|%{IP:ip_domain}?\|%{IP:ip_netspeed}?\|%{URI:page_url}?\|%{DATA:page_title}?\|%{GREEDYDATA:page_referrer}?\|%{WORD:page_urlscheme}?\|%{URIHOST:page_urlhost}?\|%{NUMBER:page_urlport}?\|%{UNIXPATH:page_urlpath}?\|%{WORD:page_urlquery}?\|%{WORD:page_urlfragment}?\|%{WORD:refr_urlscheme}?\|%{URIHOST:refr_urlhost}?\|%{NUMBER:refr_urlport}?\|%{UNIXPATH:refr_urlpath}?\|%{WORD:refr_urlquery}?\|%{WORD:refr_urlfragment}?\|%{WORD:refr_medium}?\|%{WORD:refr_source}?\|%{WORD:refr_term}?\|%{WORD:mkt_medium}?\|%{WORD:mkt_source}?\|%{WORD:mkt_term}?\|%{WORD:mkt_content}?\|%{WORD:mkt_campaign}?\|%{WORD:se_category}?\|%{GREEDYDATA:se_action}?\|%{WORD:se_label}?\|%{WORD:se_property}?\|%{NUMBER:se_value}?\|%{WORD:tr_orderid}?\|%{WORD:tr_affiliation}?\|%{WORD:tr_total}?\|%{WORD:tr_tax}?\|%{WORD:tr_shipping}?\|%{WORD:tr_city}?\|%{WORD:tr_state}?\|%{WORD:tr_country}?\|%{UUID:ti_orderid}?\|%{WORD:ti_sku}?\|%{WORD:ti_name}?\|%{WORD:ti_category}?\|%{NUMBER:ti_price}?\|%{NUMBER:ti_quantity}?\|%{NUMBER:pp_xoffset_min}?\|%{NUMBER:pp_xoffset_max}?\|%{NUMBER:pp_yoffset_min}?\|%{NUMBER:pp_yoffset_max}?\|%{WORD:excessdataA}?\|%{WORD:excessdataB}?\|%{DATA:user_agent}?\|%{WORD:br_name}?\|%{WORD:br_family}?\|%{WORD:br_version}?\|%{WORD:br_type}?\|%{WORD:br_renderengine}?\|%{JAVAFILE:br_lang}?\|%{WORD:br_features_pdf}?\|%{WORD:br_features_flash}?\|%{WORD:br_features_java}?\|%{WORD:br_features_director}?\|%{WORD:br_features_quicktime}?\|%{WORD:br_features_realplayer}?\|%{WORD:br_features_windowsmedia}?\|%{WORD:br_features_gears}?\|%{WORD:br_features_silverlight}?\|%{NUMBER:br_cookies}?\|%{NUMBER:br_colordepth}?\|%{NUMBER:br_viewwidth}?\|%{NUMBER:br_viewheight}?\|%{WORD:os_name}?\|%{WORD:os_family}?\|%{WORD:os_manufacturer}?\|%{DATA:os_timezone}?\|%{WORD:dvce_type}?\|%{WORD:dvce_ismobile}?\|%{NUMBER:dvce_screenwidth}?\|%{NUMBER:dvce_screenheight}?\|%{JAVAFILE:doc_charset}?\|%{NUMBER:doc_width}?\|%{NUMBER:doc_height}?\|%{NUMBER:tr_currency}?\|%{NUMBER:tr_total_base}?\|%{NUMBER:tr_tax_base}?\|%{NUMBER:tr_shipping_base}?\|%{NUMBER:ti_currency}?\|%{NUMBER:ti_price_base}?\|%{NUMBER:base_currency}?\|%{TIMESTAMP_ISO8601:geo_timezone}?\|%{NUMBER:mkt_clickid}?\|%{IP:mkt_network}?\|%{WORD:etl_tags}?\|%{TIMESTAMP_ISO8601:dvce_sent_tstamp}?\|%{UUID:refr_domain_userid}?\|%{TIMESTAMP_ISO8601:refr_device_tstamp}?\|%{WORD:excessdataC}?\|%{UUID:domain_sessionid}?\|%{TIMESTAMP_ISO8601:derived_tstamp}?\|%{JAVAFILE:event_vendor}?\|%{WORD:event_name}?\|%{WORD:event_format}?\|%{JAVAFILE:event_version}?\|%{WORD:event_fingerprint}?\|%{TIMESTAMP_ISO8601:true_tstamp}?" }
+  remove_field => "message"
+  }
+        useragent {
+            source => "user_agent"
+            target => "user_agent"
+        }
+}
+
+output {
+  if [type] == "good" {
+   elasticsearch {
+    hosts => [ "127.0.0.1" ]
+    index => "nsq-good_%{+YYYY-MM}"
+    document_type => "elasticsearch"
+   }
+ }
+  if [type] == "bad" {
+   elasticsearch {
+    hosts => [ "127.0.0.1" ]
+    index => "nsq-bad_%{+YYYY-MM}"
+    document_type => "elasticsearch"
+   }
+ }
+}
+

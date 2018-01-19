@@ -1,0 +1,20 @@
+version: '2'
+services:
+ nginx:
+  image: nginx
+  volumes:
+    - /snowplow/nginx/nginx.conf:/etc/nginx/nginx.conf
+  ports:
+   - 8080:80
+  container_name: nginx
+  networks:
+       snowbr:
+        ipv4_address: 172.19.0.15
+
+networks:
+    snowbr:
+        ipam:
+            driver: default
+            config:
+                - subnet: 172.19.0.0/16
+

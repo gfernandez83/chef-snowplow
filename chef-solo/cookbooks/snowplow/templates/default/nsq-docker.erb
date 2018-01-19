@@ -1,0 +1,76 @@
+version: '2'
+services:
+  nsqlookupd1:
+    image: nsqio/nsq
+    command: /nsqlookupd
+    container_name: nsqlookupd1
+    ports:
+      - "4260:4160"
+      - "4261:4161"
+    restart: unless-stopped
+    networks:
+       snowbr:
+        ipv4_address: 172.19.0.10
+
+  nsqlookupd2:
+    image: nsqio/nsq
+    command: /nsqlookupd
+    container_name: nsqlookupd2
+    ports:
+      - "4360:4160"
+      - "4361:4161"
+    restart: unless-stopped
+    networks:
+       snowbr:
+        ipv4_address: 172.19.0.11
+
+  nsqd1:
+    image: nsqio/nsq
+    command: /nsqd --lookupd-tcp-address=nsqlookupd1:4160 --lookupd-tcp-address=nsqlookupd2:4160 --broadcast-address=172.19.0.12
+    depends_on:
+      - nsqlookupd1
+      - nsqlookupd2
+    container_name: nsqd1
+    ports:
+      - "4250:4150"
+      - "4251:4151"
+    restart: unless-stopped
+    networks:
+       snowbr:
+        ipv4_address: 172.19.0.12
+
+  nsqd2:
+    image: nsqio/nsq
+    command: /nsqd --lookupd-tcp-address=nsqlookupd1:4160 --lookupd-tcp-address=nsqlookupd2:4160 --broadcast-address=172.19.0.13
+    depends_on:
+      - nsqlookupd1
+      - nsqlookupd2
+    container_name: nsqd2
+    ports:
+      - "4350:4150"
+      - "4351:4151"
+    restart: unless-stopped
+    networks:
+       snowbr:
+        ipv4_address: 172.19.0.13
+
+  nsqadmin1:
+    image: nsqio/nsq
+    command: /nsqadmin --lookupd-http-address=nsqlookupd1:4161 --lookupd-http-address=nsqlookupd2:4161
+    depends_on:
+      - nsqlookupd1
+      - nsqlookupd2
+    container_name: nsqadmin1
+    ports:
+      - "4271:4171"
+    restart: unless-stopped
+    networks:
+       snowbr:
+        ipv4_address: 172.19.0.14
+
+networks:
+    snowbr:
+        ipam:
+            driver: default
+            config:
+                - subnet: 172.19.0.0/16
