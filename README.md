@@ -37,6 +37,11 @@ snowplow-elk: This installs the ELK stack that will be used for storage and visu
 To secure you data and access on ELK, you may add x-pack plugins which has 30 days free trial but you need to purchase it after the trial period. You may also use NGINX reverse proxy for login security in Kibana incase you don't want to spend money for x-pack.
 
 ## Running the tests
+You may now run chef to build the evaluation environment.
+```
+chef-solo -c solo.rb -j solo.json
+```
+
 If you went over Snowplow documentation, you must know that there are several steps to build Snowplow. One of the first part is setting up the trackers. Trackers differ on the type of your application (PHP, Golang, Java, JS, and many more). 
 You may set these trackers on your web or mobile applications so you may start plowing your data.
 
