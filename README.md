@@ -1,4 +1,4 @@
-# chef-snowplow
+# Snowplow POC using Chef-Solo
 ## Getting Started
 This project is for setting up on-premise Snowplow test environment using Chef-solo. Snowplow is an open-source data analytics tool that is based from Piwik. If you want to know more about their product, you may check their site - https://snowplowanalytics.com/ or github - https://github.com/snowplow/snowplow. 
 
