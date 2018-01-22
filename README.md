@@ -22,7 +22,7 @@ apt-get install oracle-java8-installer
 Once all files are placed. Need to update the solo.json file to include all recipes to run.
 ```
 {
-    "run_list": [ "recipe[snowplow::snowplow-elk]", "recipe[snowplow::snowplow-nsq]", "recipe[snowplow::snowplow-nnginx]", "recipe[snowplow::snowplow-conf]" ]
+    "run_list": [ "recipe[snowplow::snowplow-elk]", "recipe[snowplow::snowplow-nsq]", "recipe[snowplow::snowplow-nginx]", "recipe[snowplow::snowplow-conf]" ]
 }
 ```
 snowplow-nsq: This will spawn dockerized NSQ that will serve as the messaging platform. Please see http://nsq.io/ for detailed explanation how it works. The topics for NSQd will also be created after chef run. These are the topics for good, bad, good enriched and bad enriched.
